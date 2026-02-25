@@ -406,7 +406,7 @@ const App: React.FC = () => {
       case 'category-mgmt': return <CategoryManagement categories={categories} setCategories={setCategories} role={role} />;
       case 'access-control': return <AccessControl permissions={permissions} setPermissions={setPermissions} role={role} />;
       case 'bulk-upload':  return <BulkUpload warehouses={warehouses} categories={categories} setItems={setItems} addNotification={addNotification} role={role} />;
-      default:             return <Dashboard items={items} warehouses={warehouses} transactions={transactions} />;
+      default:             return <Dashboard role={role} items={items} warehouses={warehouses} transactions={transactions} />;
     }
   };
 
