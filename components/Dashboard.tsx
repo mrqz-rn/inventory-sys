@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Item, Warehouse, Transaction, ItemStatus } from '../types';
+import { Item, Warehouse, Transaction, ItemStatus, UserRole } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { TrendingUp, Package, AlertTriangle, DollarSign, Warehouse as WarehouseIcon, X, Eye, CheckCircle2, XCircle, ArrowRight, Clock, User, MapPin, MessageSquare, Info } from 'lucide-react';
 
 interface DashboardProps {
+  role: UserRole;
   items: Item[];
   warehouses: Warehouse[];
   transactions: Transaction[];
@@ -22,8 +23,7 @@ const REJECTION_REASONS = [
   'Other / Custom Reason',
 ];
 
-const Dashboard: React.FC<DashboardProps> = ({ items, warehouses, transactions, onApprove, onReject, onViewAll }) => {
-  console.log("items", items.filter(i => i.status === ItemStatus.OLD_USED));  
+const Dashboard: React.FC<DashboardProps> = ({ role, items, warehouses, transactions, onApprove, onReject, onViewAll }) => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<{ id: string; name: string; color: string } | null>(null);
   const [rejectingTx, setRejectingTx] = useState<Transaction | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -96,6 +96,7 @@ const Dashboard: React.FC<DashboardProps> = ({ items, warehouses, transactions, 
       </div>
 
       {/* Pending Approvals */}
+      {role === 'ADMIN' && (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden my-4">
         <div className="flex items-center justify-between px-5 md:px-6 pt-5 md:pt-6 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
@@ -205,7 +206,7 @@ const Dashboard: React.FC<DashboardProps> = ({ items, warehouses, transactions, 
           </div>
         )}
       </div>
-
+      )}
       {/* Warehouse Inventory Value Breakdown */}
       <div className="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 my-4">
         <h3 className="text-sm font-black text-slate-800 mb-1 flex items-center gap-2 uppercase tracking-widest mb-4">

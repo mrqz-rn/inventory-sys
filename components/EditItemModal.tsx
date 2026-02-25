@@ -35,7 +35,7 @@ const Field = ({
   label: string; icon: React.ReactNode; error?: string; children: React.ReactNode;
 }) => (
   <div className="flex flex-col gap-1.5">
-    <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-stone-400">
+    <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
       {icon}{label}
     </label>
     {children}
@@ -57,11 +57,11 @@ const CostField = ({
 }) => (
   <div className={`bg-white border rounded-2xl p-4 hover:border-stone-300 transition-all ${error ? 'border-rose-300' : 'border-stone-200'}`}>
     <div className="flex items-center gap-1.5 mb-2">
-      <Icon size={10} className="text-stone-400 shrink-0" />
-      <span className="text-[9px] font-black uppercase tracking-widest text-stone-400">{label}</span>
+      <Icon size={10} className="text-stone-500 shrink-0" />
+      <span className="text-[9px] font-black uppercase tracking-widest text-stone-500">{label}</span>
     </div>
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs font-bold select-none">₱</span>
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-bold select-none">₱</span>
       <input
         type="number"
         step="0.01"
@@ -260,27 +260,27 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
         {/* ── Header ── */}
         <div className="sticky top-0 z-10 bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 py-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">Editing SKU</p>
+            <p className="text-[12px] font-black uppercase tracking-[0.22em] text-stone-500">Editing SKU</p>
             <h2 className="text-lg font-black text-stone-900 leading-snug tracking-tight">{item.name}</h2>
           </div>
           <button
             type="button"
             onClick={handleClose}
-            className="shrink-0 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors"
+            className="shrink-0 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-500 hover:text-stone-700 flex items-center justify-center transition-colors"
           >
             <X size={15} />
           </button>
         </div>
 
         {/* ── Body ── */}
-        <div className="p-6 md:p-8 space-y-8">
+        <div className="p-2 md:p-8 space-y-8">
 
           {/* Identity */}
           <div>
-            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-stone-400 mb-4">
+            {/* <p className="flex items-center gap-2 text-[12px] font-black uppercase tracking-[0.22em] text-stone-500 mb-4">
               <Hash size={10} /> Identity
               <span className="flex-1 h-px bg-stone-200" />
-            </p>
+            </p> */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
               <Field label="Item Name" icon={<Package size={10} />} error={errors.name}>
@@ -337,7 +337,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
 
           {/* Condition */}
           <div>
-            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-stone-400 mb-4">
+            <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500 mb-4">
               <ShieldAlert size={10} /> Condition
               <span className="flex-1 h-px bg-stone-200" />
             </p>
@@ -354,7 +354,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
                       py-2.5 px-3 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all
                       ${isActive
                         ? meta.active
-                        : 'bg-white border-stone-200 text-stone-400 hover:bg-stone-50 hover:border-stone-300'}
+                        : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50 hover:border-stone-300'}
                     `}
                   >
                     {meta.label}
@@ -366,9 +366,9 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
 
           {/* Cost fields */}
           <div>
-            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-stone-400 mb-4">
+            <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-stone-500 mb-4">
               <Calculator size={10} /> Cost Components
-              <span className="text-[8px] font-medium normal-case tracking-normal text-stone-300">(per unit)</span>
+              <span className="text-[11px] font-medium normal-case tracking-normal text-stone-400">(per unit)</span>
               <span className="flex-1 h-px bg-stone-200" />
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -386,14 +386,14 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
                   const pct = trueUnitCost > 0 ? (value / trueUnitCost) * 100 : 0;
                   return (
                     <div key={label} className="flex items-center gap-3">
-                      <span className="text-[9px] font-mono text-stone-400 w-14 shrink-0">{label}</span>
+                      <span className="text-[9px] font-mono text-stone-500 w-14 shrink-0">{label}</span>
                       <div className="flex-1 h-1.5 bg-stone-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${bar} transition-all duration-500`}
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="text-[9px] font-mono text-stone-400 w-8 text-right shrink-0">{Math.round(pct)}%</span>
+                      <span className="text-[9px] font-mono text-stone-500 w-8 text-right shrink-0">{Math.round(pct)}%</span>
                     </div>
                   );
                 })}
@@ -420,7 +420,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
 
               {/* Per-unit cost */}
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-white/60 mb-1">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 mb-1">
                   New True Unit Cost · Landed
                 </p>
                 <p className="text-5xl font-black text-white leading-none tracking-tighter">
@@ -437,14 +437,14 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
               {/* Total inventory value + CTA */}
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-white/60 mb-1">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/60 mb-1">
                     Total Inventory Value
                   </p>
                   <p className="text-2xl font-black text-white/90 leading-none tracking-tight">
-                    ₱{totalValue.toFixed(2)}
+                    ₱{totalValue.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <p className="text-[9px] text-white/40 mt-1 font-mono">
-                    ₱{trueUnitCost.toFixed(2)} × {safeQty} {safeQty === 1 ? 'unit' : 'units'}
+                    ₱{trueUnitCost.toFixed(2) } × {safeQty} {safeQty === 1 ? 'unit' : 'units'}
                   </p>
                 </div>
 

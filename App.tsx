@@ -389,6 +389,7 @@ const App: React.FC = () => {
       // case 'dashboard':    return <Dashboard items={items} warehouses={warehouses} transactions={transactions} />;
       case 'dashboard': return (
         <Dashboard
+          role={role}
           items={items}
           warehouses={warehouses}
           transactions={transactions}
