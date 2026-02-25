@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Nexus Warehouse Pro",
+  "description": "A high-performance warehouse management system featuring multi-warehouse scaling, parent-child categorization, landed cost valuation, and a real-time admin approval workflow.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
