@@ -48,7 +48,6 @@ const defaultPermissions: RolePermissionMap = {
     { moduleId: 'inventory', actions: ['view', 'update', 'delete', 'export'] },
     { moduleId: 'warehouses', actions: ['view', 'update', 'delete', 'export'] },
     { moduleId: 'approvals', actions: ['view', 'update', 'delete', 'export'] },
-    { moduleId: 'valuation', actions: ['view', 'update', 'delete', 'export'] },
     { moduleId: 'reports', actions: ['view', 'update', 'delete', 'export'] },
     { moduleId: 'category-mgmt', actions: ['view', 'update', 'delete', 'export'] },
     { moduleId: 'access-control', actions: ['view', 'update', 'delete', 'export'] },
@@ -57,7 +56,6 @@ const defaultPermissions: RolePermissionMap = {
   [UserRole.STAFF]: [
     { moduleId: 'dashboard', actions: ['view'] },
     { moduleId: 'inventory', actions: ['view', 'update'] },
-    { moduleId: 'valuation', actions: ['view', 'update'] },
     { moduleId: 'bulk-upload', actions: ['view', 'update'] },
   ],
   [UserRole.ACCOUNTANT]: [
@@ -401,7 +399,6 @@ const App: React.FC = () => {
       case 'inventory':    return <Inventory items={items} setItems={setItems} categories={categories} warehouses={warehouses} onStockIn={handleStockInRequest} onStockOut={handleStockOutRequest} onTransfer={handleTransferRequest} role={role} permissions={permissions[role]} />;
       case 'warehouses':   return <WarehouseManager warehouses={warehouses} setWarehouses={setWarehouses} role={role} />;
       case 'approvals':    return <Approvals transactions={transactions} items={items} warehouses={warehouses} onApprove={handleApproveTransaction} onReject={handleRejectTransaction} role={role} />;
-      case 'valuation':    return <Valuation items={items} setItems={setItems} warehouses={warehouses} categories={categories} role={role} />;
       case 'reports':      return <Reports items={items} warehouses={warehouses} transactions={transactions} role={role} canExport={checkAccess('reports', 'export')} />;
       case 'category-mgmt': return <CategoryManagement categories={categories} setCategories={setCategories} role={role} />;
       case 'access-control': return <AccessControl permissions={permissions} setPermissions={setPermissions} role={role} />;

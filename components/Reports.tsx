@@ -110,7 +110,7 @@ const Reports: React.FC<Props> = ({ items, warehouses, transactions, role, canEx
   const currentMonth = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className=" pb-24">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -293,7 +293,7 @@ const Reports: React.FC<Props> = ({ items, warehouses, transactions, role, canEx
       </div>
 
       {/* Predictive Gemini Card (Refined) */}
-      <div className="bg-indigo-600 p-8 md:p-12 rounded-[3rem] shadow-2xl shadow-indigo-100 text-white relative overflow-hidden">
+      {/* <div className="bg-indigo-600 p-8 md:p-12 rounded-[3rem] shadow-2xl shadow-indigo-100 text-white relative overflow-hidden">
         <div className="absolute right-0 top-0 opacity-10 p-4 translate-x-1/4 -translate-y-1/4">
           <BarChart3 className="w-80 h-80" />
         </div>
@@ -321,7 +321,7 @@ const Reports: React.FC<Props> = ({ items, warehouses, transactions, role, canEx
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {showRiskModal && (
         <RiskManifestModal 
