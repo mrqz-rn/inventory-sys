@@ -315,7 +315,8 @@ const App: React.FC = () => {
   }, [items, addNotification]);
 
   const handleScanSuccess = useCallback((barcode: string) => {
-    const found = items.find((i) => i.barcode === barcode);
+    const found = items.find((i) => i.barcode.toUpperCase() === barcode.toUpperCase());
+    alert(found);
     if (found) {
       setScannedItem(found);
       setShowScanner(false);
