@@ -38,6 +38,7 @@ import {
   enqueueSyncAction,
   SyncAction,
 } from './utils/db';
+import { getAppState, setAppState, dbDelete } from './utils/db';
 import { useOfflineSync } from './hooks/useOfflineSync';
 
 // ─── Default permissions (unchanged) ─────────────────────────────────────────
@@ -72,7 +73,9 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [isDbReady, setIsDbReady] = useState<boolean>(false);
+  const [isDbReady, setIsDbReady]         = useState<boolean>(false);
+  const [isSessionReady, setIsSessionReady] = useState<boolean>(false);
+
 
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -88,34 +91,49 @@ const App: React.FC = () => {
 
   // ─── 1. Load persisted state on mount ──────────────────────────────────────
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const persisted = await loadPersistedState();
+useEffect(() => {
+  (async () => {
+    try {
+       // ── Restore session first (fast) ────────────────────────────────────────
+      const session = await getAppState<{
+        role: UserRole;
+        isLoggedIn: boolean;
+        isVerified: boolean;
+      }>('session');
 
-        // Use persisted data if it exists, otherwise seed with constants
-        setItems(persisted.items.length > 0 ? (persisted.items as Item[]) : initialItems);
-        setWarehouses(persisted.warehouses.length > 0 ? (persisted.warehouses as Warehouse[]) : initialWarehouses);
-        setCategories(persisted.categories.length > 0 ? (persisted.categories as Category[]) : initialCategories);
-        setTransactions(persisted.transactions as Transaction[]);
-        setNotifications(persisted.notifications as Notification[]);
-
-        // Seed IndexedDB if first run
-        if (persisted.items.length === 0) {
-          await persistItems(initialItems);
-          await persistWarehouses(initialWarehouses);
-          await persistCategories(initialCategories);
-        }
-      } catch (err) {
-        console.error('Failed to load from IndexedDB, using defaults:', err);
-        setItems(initialItems);
-        setWarehouses(initialWarehouses);
-        setCategories(initialCategories);
-      } finally {
-        setIsDbReady(true);
+      if (session?.isLoggedIn) {
+        setRole(session.role);
+        setIsLoggedIn(true);
+        setIsVerified(session.isVerified);
       }
-    })();
-  }, []);
+
+      // Unblock auth rendering immediately — no more flash
+      setIsSessionReady(true);
+      // ── Restore inventory state ──────────────────────────────────────────
+      const persisted = await loadPersistedState();
+      setItems(persisted.items.length > 0 ? (persisted.items as Item[]) : initialItems);
+      setWarehouses(persisted.warehouses.length > 0 ? (persisted.warehouses as Warehouse[]) : initialWarehouses);
+      setCategories(persisted.categories.length > 0 ? (persisted.categories as Category[]) : initialCategories);
+      setTransactions(persisted.transactions as Transaction[]);
+      setNotifications(persisted.notifications as Notification[]);
+
+      if (persisted.items.length === 0) {
+        await persistItems(initialItems);
+        await persistWarehouses(initialWarehouses);
+        await persistCategories(initialCategories);
+      }
+    } catch (err) {
+      console.error('Failed to load from IndexedDB, using defaults:', err);
+      setItems(initialItems);
+      setWarehouses(initialWarehouses);
+      setCategories(initialCategories);
+      setIsSessionReady(true); // unblock even on error
+
+    } finally {
+      setIsDbReady(true);
+    }
+  })();
+}, []);
 
   // ─── 2. Persist state whenever it changes ──────────────────────────────────
 
@@ -335,12 +353,16 @@ const App: React.FC = () => {
   const handleVerify = () => {
     setIsVerified(true);
     addNotification('Security Verified', 'Identity confirmed via 2FA');
+    // Upgrade persisted session to verified
+    setAppState('session', { role, isLoggedIn: true, isVerified: true }).catch(console.error);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsVerified(false);
     setActiveTab('dashboard');
+    // Wipe session from IndexedDB
+    dbDelete('appState', 'session').catch(console.error);
   };
 
   const handleCancel2FA = () => {
@@ -349,6 +371,8 @@ const App: React.FC = () => {
   };
 
   // ─── Auth screens ───────────────────────────────────────────────────────────
+
+ if (!isSessionReady) return null;
 
   if (!isLoggedIn) return <Login onLogin={handleLogin} />;
   if (isLoggedIn && !isVerified) {
@@ -360,7 +384,6 @@ const App: React.FC = () => {
       />
     );
   }
-
   // ─── Main content router ────────────────────────────────────────────────────
 
   const renderContent = () => {
@@ -434,6 +457,7 @@ const App: React.FC = () => {
             onLogout={handleLogout}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
+            permissions={permissions[role]}
           />
 
           <main className="flex-1 overflow-y-auto p-4 pb-24 md:pb-6 lg:p-8">

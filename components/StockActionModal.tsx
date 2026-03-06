@@ -11,7 +11,7 @@ interface StockActionModalProps {
 
 const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose, onConfirm }) => {
   const [visible, setVisible] = useState(false);
-  const [rawQty, setRawQty]   = useState('1');   // string to allow clearing without NaN
+  const [rawQty, setRawQty]   = useState('1');
   const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,14 +25,8 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
   };
 
   const isInbound = type === 'IN';
-
-  // Safe parsed qty — empty / non-numeric collapses to 0
   const qty = parseInt(rawQty, 10) || 0;
-
-  // Projected stock after action
   const projected = isInbound ? item.quantity + qty : item.quantity - qty;
-
-  // Value of adjustment at landed unit cost
   const adjustmentValue = qty * item.trueUnitCost;
 
   const validateAndConfirm = (e: React.FormEvent) => {
@@ -48,12 +42,10 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
     onConfirm(qty);
   };
 
-  // Quick-select presets
   const inboundPresets  = [5, 10, 25, 50];
   const outboundPresets = [1, 5, 10, 25];
   const presets = isInbound ? inboundPresets : outboundPresets;
 
-  // Colour tokens
   const accent = isInbound
     ? { ring: 'focus:ring-emerald-400/40 focus:border-emerald-400', btn: 'from-emerald-400 to-teal-500', bar: 'bg-emerald-400', pill: 'bg-emerald-50 text-emerald-600 border-emerald-200', pillActive: 'bg-emerald-50 text-emerald-600 border-emerald-300 ring-2 ring-emerald-200', dot: 'bg-emerald-400' }
     : { ring: 'focus:ring-rose-400/40 focus:border-rose-400',       btn: 'from-rose-400 to-orange-500',  bar: 'bg-rose-400',    pill: 'bg-rose-50 text-rose-500 border-rose-200',       pillActive: 'bg-rose-50 text-rose-600 border-rose-300 ring-2 ring-rose-200',       dot: 'bg-rose-400'   };
@@ -62,10 +54,10 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
     <div
       onClick={handleClose}
       className={`
-        fixed inset-0 z-[120] flex items-end md:items-center md:justify-center
+        fixed inset-0 z-[120] flex items-center justify-center p-4
         transition-all duration-300
         ${visible
-          ? 'bg-stone-900/40 backdrop-blur-sm'
+          ? 'bg-slate-900/40 backdrop-blur-sm'
           : 'bg-transparent backdrop-blur-none pointer-events-none'}
       `}
     >
@@ -73,28 +65,25 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
         onSubmit={validateAndConfirm}
         onClick={e => e.stopPropagation()}
         className={`
-          relative w-full md:max-w-md
-          bg-stone-50 border border-stone-200 shadow-2xl
-          rounded-t-[2rem] md:rounded-[2rem]
-          overflow-hidden
+          relative w-full max-w-md
+          bg-white border border-slate-200 shadow-2xl
+          rounded-3xl overflow-hidden
           transition-all duration-300 ease-out
           ${visible
-            ? 'translate-y-0 opacity-100 md:scale-100'
-            : 'translate-y-full opacity-0 md:translate-y-4 md:scale-[0.97]'}
+            ? 'translate-y-0 opacity-100 scale-100'
+            : 'translate-y-4 opacity-0 scale-[0.97]'}
         `}
       >
 
         {/* ── Header ── */}
-        <div className="bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 py-4 flex items-center justify-between gap-4">
+        <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 ${isInbound ? 'bg-emerald-500' : 'bg-rose-500'}`}>
-              {isInbound
-                ? <ArrowUpCircle size={18} />
-                : <ArrowDownCircle size={18} />}
+              {isInbound ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
             </div>
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">Inventory Adjustment</p>
-              <h2 className="text-lg font-black text-stone-900 leading-snug tracking-tight">
+              <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Inventory Adjustment</p>
+              <h2 className="text-lg font-black text-slate-900 leading-snug tracking-tight">
                 {isInbound ? 'Stock Inbound' : 'Stock Outbound'}
               </h2>
             </div>
@@ -102,7 +91,7 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
           <button
             type="button"
             onClick={handleClose}
-            className="shrink-0 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors"
+            className="shrink-0 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
           >
             <X size={15} />
           </button>
@@ -111,23 +100,23 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
         <div className="p-6 space-y-6">
 
           {/* ── Item card ── */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
-              <Package size={15} className="text-stone-500" />
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0">
+              <Package size={15} className="text-slate-500" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-black text-stone-900 truncate">{item.name}</p>
-              <p className="text-[10px] font-mono text-stone-400">{item.barcode}</p>
+              <p className="text-sm font-black text-slate-900 truncate">{item.name}</p>
+              <p className="text-[10px] font-mono text-slate-400">{item.barcode}</p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-[9px] font-black uppercase tracking-widest text-stone-300">Current</p>
-              <p className="text-sm font-black text-stone-800">{item.quantity} <span className="text-stone-400 font-medium text-xs">units</span></p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">Current</p>
+              <p className="text-sm font-black text-slate-800">{item.quantity} <span className="text-slate-400 font-medium text-xs">units</span></p>
             </div>
           </div>
 
           {/* ── Quantity input ── */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400">
+            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
               Adjustment Quantity
             </label>
 
@@ -139,7 +128,7 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
                   type="button"
                   onClick={() => { setRawQty(String(p)); setError(null); }}
                   className={`py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg border transition-all ${
-                    qty === p ? accent.pillActive : 'bg-white text-stone-400 border-stone-200 hover:border-stone-300 hover:bg-stone-50'
+                    qty === p ? accent.pillActive : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
                   +{p}
@@ -158,14 +147,14 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
                 value={rawQty}
                 onChange={e => { setRawQty(e.target.value); setError(null); }}
                 className={`
-                  w-full bg-white border rounded-xl px-4 py-3.5 text-2xl font-black text-stone-900
+                  w-full bg-white border rounded-xl px-4 py-3.5 text-2xl font-black text-slate-900
                   focus:outline-none focus:ring-2 transition-all
                   ${error
                     ? 'border-rose-300 focus:ring-rose-200/50 focus:border-rose-400'
-                    : `border-stone-200 ${accent.ring}`}
+                    : `border-slate-200 ${accent.ring}`}
                 `}
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-mono text-stone-300 uppercase">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-300 uppercase">
                 units
               </span>
             </div>
@@ -180,14 +169,13 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
           </div>
 
           {/* ── Stock projection ── */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-stone-400">Projected Stock</p>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Projected Stock</p>
 
-            {/* Before → After */}
             <div className="flex items-center gap-3">
               <div className="text-center">
-                <p className="text-[9px] text-stone-300 font-bold mb-0.5">Before</p>
-                <p className="text-xl font-black text-stone-600">{item.quantity}</p>
+                <p className="text-[9px] text-slate-300 font-bold mb-0.5">Before</p>
+                <p className="text-xl font-black text-slate-600">{item.quantity}</p>
               </div>
               <div className={`flex-1 h-px ${isInbound ? 'bg-emerald-200' : 'bg-rose-200'}`} />
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0 ${isInbound ? 'bg-emerald-500' : 'bg-rose-500'}`}>
@@ -195,18 +183,17 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
               </div>
               <div className={`flex-1 h-px ${isInbound ? 'bg-emerald-200' : 'bg-rose-200'}`} />
               <div className="text-center">
-                <p className="text-[9px] text-stone-300 font-bold mb-0.5">After</p>
+                <p className="text-[9px] text-slate-300 font-bold mb-0.5">After</p>
                 <p className={`text-xl font-black ${
-                  projected < 0 ? 'text-rose-500' : isInbound ? 'text-emerald-600' : 'text-stone-900'
+                  projected < 0 ? 'text-rose-500' : isInbound ? 'text-emerald-600' : 'text-slate-900'
                 }`}>
                   {projected < 0 ? '—' : projected}
                 </p>
               </div>
             </div>
 
-            {/* Bar */}
             {qty > 0 && projected >= 0 && (
-              <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 {isInbound ? (
                   <div
                     className="h-full rounded-full bg-emerald-400 transition-all duration-300"
@@ -245,11 +232,11 @@ const StockActionModal: React.FC<StockActionModalProps> = ({ item, type, onClose
         </div>
 
         {/* ── Footer ── */}
-        <div className="border-t border-stone-200 bg-stone-50/90 backdrop-blur-md px-6 py-4 flex gap-2">
+        <div className="border-t border-slate-200 bg-white/90 backdrop-blur-md px-6 py-4 flex gap-2">
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-stone-500 bg-white border border-stone-200 hover:bg-stone-100 transition-all"
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 transition-all"
           >
             Cancel
           </button>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Item, Warehouse } from '../types';
-import { X, Printer, Info, Tag } from 'lucide-react';
+import { X, Printer, Info, Tag, Minus, Plus } from 'lucide-react';
 
 interface BarcodeLabelModalProps {
   items: Item[];
@@ -9,8 +9,6 @@ interface BarcodeLabelModalProps {
 }
 
 // ── Minimal Code39 SVG barcode renderer ──────────────────────────────────────
-// Code 39 encodes A-Z, 0-9 and a few symbols. Each char = 9 elements (5 bars,
-// 4 spaces), each element is either narrow (1 unit) or wide (3 units).
 const CODE39: Record<string, string> = {
   '0':'000110100','1':'100100001','2':'001100001','3':'101100000',
   '4':'000110001','5':'100110000','6':'001110000','7':'000100101',
@@ -29,7 +27,6 @@ function renderCode39(text: string, barH = 56): React.ReactNode {
     .split('')
     .map(c => CODE39[c] ?? CODE39[' ']);
 
-  // Build bar widths: pattern = bars and spaces alternating, narrow=2px wide=5px
   const NARROW = 2, WIDE = 5, GAP = 3;
   const bars: { x: number; w: number; bar: boolean }[] = [];
   let x = 0;
@@ -37,16 +34,16 @@ function renderCode39(text: string, barH = 56): React.ReactNode {
   encoded.forEach((pattern, ci) => {
     pattern.split('').forEach((bit, i) => {
       const w = bit === '1' ? WIDE : NARROW;
-      const isBar = i % 2 === 0; // even indices = bar, odd = space
+      const isBar = i % 2 === 0;
       bars.push({ x, w, bar: isBar });
       x += w;
     });
-    if (ci < encoded.length - 1) x += GAP; // inter-character gap
+    if (ci < encoded.length - 1) x += GAP;
   });
 
   const totalW = x;
   return (
-    <svg viewBox={`0 0 ${totalW} ${barH}`} width="100%" height={barH} xmlns="http://www.w3.org/2000/svg" className="print:fill-black">
+    <svg viewBox={`0 0 ${totalW} ${barH}`} width="100%" height={barH} xmlns="http://www.w3.org/2000/svg">
       {bars.filter(b => b.bar).map((b, i) => (
         <rect key={i} x={b.x} y={0} width={b.w} height={barH} fill="currentColor" />
       ))}
@@ -63,63 +60,84 @@ const LabelCard: React.FC<{ item: Item; warehouseName: string }> = ({ item, ware
     GOOD_AS_NEW: 'bg-emerald-100 text-emerald-700',
     OLD_USED: 'bg-amber-100 text-amber-700',
   };
-  const pill = statusColors[item.status] ?? 'bg-stone-100 text-stone-600';
+  const pill = statusColors[item.status] ?? 'bg-slate-100 text-slate-600';
 
   return (
     <div className="
-      bg-white border-2 border-stone-900
-      print:border-black print:rounded-none print:shadow-none
+      bg-white border-2 border-slate-900
       rounded-xl shadow-sm
       p-4 flex flex-col justify-between
-      h-[190px] print:h-[2in] print:w-[4in]
+      h-[190px]
       break-inside-avoid
     ">
-      {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-stone-400 print:text-black">
+          <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">
             Nexus Pro Registry
           </p>
-          <p className="text-sm font-black text-stone-900 print:text-black leading-tight truncate">
-            {item.name}
-          </p>
-          <p className="text-[9px] text-stone-400 print:text-black mt-0.5">
+          <p className="text-sm font-black text-slate-900 leading-tight truncate">{item.name}</p>
+          <p className="text-[9px] text-slate-400 mt-0.5">
             Hub: <span className="font-bold">{warehouseName}</span>
             &nbsp;·&nbsp;
             Qty: <span className="font-bold">{item.quantity}</span>
           </p>
         </div>
-        <span className={`shrink-0 text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${pill} print:bg-transparent print:border print:border-black print:text-black`}>
+        <span className={`shrink-0 text-[8px] font-black uppercase tracking-wider px-2 py-1 rounded-lg ${pill}`}>
           {statusLabel}
         </span>
       </div>
 
-      {/* Barcode */}
-      <div className="text-stone-900 print:text-black my-1">
+      <div className="text-slate-900 my-1">
         {renderCode39(item.barcode, 65)}
       </div>
 
-      {/* Bottom row */}
-      <div className="flex items-center justify-between border-t border-stone-200 print:border-black pt-2">
-        <span className="font-mono text-[9px] font-bold text-stone-500 print:text-black tracking-widest">
-          {item.barcode}
-        </span>
+      <div className="flex items-center justify-between border-t border-slate-200 pt-2">
+        <span className="font-mono text-[9px] font-bold text-slate-500 tracking-widest">{item.barcode}</span>
         <div className="text-right">
-          <span className="text-[8px] font-black text-stone-400 print:text-black uppercase tracking-wider block">
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">
             PH-SKU-{item.id.replace('it-', '')}
           </span>
-          <span className="text-[8px] text-stone-300 print:text-black">
-            {new Date().toLocaleDateString('en-PH')}
-          </span>
+          <span className="text-[8px] text-slate-300">{new Date().toLocaleDateString('en-PH')}</span>
         </div>
       </div>
     </div>
   );
 };
 
+// ── Copy count stepper ────────────────────────────────────────────────────────
+const CopyStepper: React.FC<{
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}> = ({ value, onChange, min = 1, max = 99 }) => (
+  <div className="flex items-center gap-1.5">
+    <button
+      type="button"
+      onClick={() => onChange(Math.max(min, value - 1))}
+      disabled={value <= min}
+      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center transition-colors active:scale-90"
+    >
+      <Minus size={11} className="text-slate-600" />
+    </button>
+    <span className="w-8 text-center text-sm font-black text-slate-800 tabular-nums">{value}</span>
+    <button
+      type="button"
+      onClick={() => onChange(Math.min(max, value + 1))}
+      disabled={value >= max}
+      className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center transition-colors active:scale-90"
+    >
+      <Plus size={11} className="text-slate-600" />
+    </button>
+  </div>
+);
+
 // ── Main modal ───────────────────────────────────────────────────────────────
 const BarcodeLabelModal: React.FC<BarcodeLabelModalProps> = ({ items, warehouses, onClose }) => {
   const [visible, setVisible] = useState(false);
+  const [copies, setCopies] = useState<Record<string, number>>(
+    () => Object.fromEntries(items.map(i => [i.id, 1]))
+  );
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisible(true));
@@ -134,65 +152,86 @@ const BarcodeLabelModal: React.FC<BarcodeLabelModalProps> = ({ items, warehouses
   const getWarehouseName = (id: string) =>
     warehouses.find(w => w.id === id)?.name ?? 'N/A';
 
+  const setCopy = (itemId: string, val: number) =>
+    setCopies(prev => ({ ...prev, [itemId]: Math.max(1, Math.min(99, val)) }));
+
+  const setAllCopies = (val: number) =>
+    setCopies(Object.fromEntries(items.map(i => [i.id, val])));
+
+  const totalLabels = items.reduce((sum, i) => sum + (copies[i.id] ?? 1), 0);
+
+  const allSame = items.length > 0 && items.every(i => (copies[i.id] ?? 1) === (copies[items[0].id] ?? 1));
+  const globalVal = allSame ? (copies[items[0]?.id] ?? 1) : -1;
+
+  // Expanded list for print: repeat each item N times
+  const printItems = items.flatMap(item =>
+    Array.from({ length: copies[item.id] ?? 1 }, (_, idx) => ({ ...item, _printKey: `${item.id}-${idx}` }))
+  );
+
   return (
     <>
-      {/* Print-only global reset */}
       <style>{`
+        @media screen {
+          .print-root { display: none !important; }
+        }
         @media print {
-          body > *:not(.print-root) { display: none !important; }
+          body * { visibility: hidden; }
+          .print-root, .print-root * { visibility: visible; }
+          .print-root {
+            display: block !important;
+            position: fixed !important;
+            top: 0; left: 0;
+            width: 100%;
+          }
           .no-print { display: none !important; }
-          .print-root { display: block !important; position: static !important; }
         }
       `}</style>
 
       <div
         onClick={handleClose}
         className={`
-          no-print fixed inset-0 z-[150] flex items-end md:items-center md:justify-center
+          no-print fixed inset-0 z-[150] flex items-center justify-center p-4
           transition-all duration-300
           ${visible
-            ? 'bg-stone-900/40 backdrop-blur-sm'
+            ? 'bg-slate-900/40 backdrop-blur-sm'
             : 'bg-transparent backdrop-blur-none pointer-events-none'}
         `}
       >
         <div
           onClick={e => e.stopPropagation()}
           className={`
-            relative w-full md:max-w-4xl
-            bg-stone-50 border border-stone-200 shadow-2xl
-            rounded-t-[2rem] md:rounded-[2rem]
-            max-h-[92dvh] flex flex-col
+            relative w-full max-w-4xl
+            bg-white border border-slate-200 shadow-2xl
+            rounded-3xl max-h-[90dvh] flex flex-col
             transition-all duration-300 ease-out
-            ${visible
-              ? 'translate-y-0 opacity-100 md:scale-100'
-              : 'translate-y-full opacity-0 md:translate-y-4 md:scale-[0.97]'}
+            ${visible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-[0.97]'}
           `}
         >
 
           {/* ── Header ── */}
-          <div className="shrink-0  border-b border-stone-200 px-6 py-4 flex items-center justify-between gap-4">
+          <div className="shrink-0 border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center shrink-0">
-                <Tag size={15} className="text-stone-600" />
+              <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200 flex items-center justify-center shrink-0">
+                <Tag size={15} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">Print Queue</p>
-                <h2 className="text-lg font-black text-stone-900 leading-snug tracking-tight">
-                  Label Manifest
-                </h2>
+                <p className="text-[9px] font-black uppercase tracking-[0.22em] text-slate-400">Print Queue</p>
+                <h2 className="text-lg font-black text-slate-900 leading-snug tracking-tight">Label Manifest</h2>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 shadow-md hover:shadow-lg active:scale-95 transition-all"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white bg-blue-600 hover:bg-blue-500 shadow-md shadow-blue-200 hover:shadow-lg active:scale-95 transition-all"
               >
-                <Printer size={14} /> Print {items.length} {items.length === 1 ? 'Label' : 'Labels'}
+                <Printer size={14} />
+                Print
+                {/* Print {totalLabels} {totalLabels === 1 ? 'Label' : 'Labels'} */}
               </button>
               <button
                 onClick={handleClose}
-                className="shrink-0 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors"
+                className="shrink-0 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
               >
                 <X size={15} />
               </button>
@@ -200,53 +239,108 @@ const BarcodeLabelModal: React.FC<BarcodeLabelModalProps> = ({ items, warehouses
           </div>
 
           {/* ── Print hint ── */}
-          <div className="shrink-0 px-6 py-3 bg-amber-50 border-b border-amber-100 flex items-start gap-2.5">
-            <Info size={13} className="text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-amber-700/80 leading-relaxed">
-              Formatted for <span className="font-bold text-amber-800">4″ × 2″</span> thermal labels.
-              Enable <span className="font-bold text-amber-800">Background Graphics</span> in your browser's print settings.
-              Barcodes use <span className="font-bold text-amber-800">Code 39</span> encoding and are scanner-ready.
+          <div className="shrink-0 px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-start gap-2.5">
+            <Info size={13} className="text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-blue-700/80 leading-relaxed">
+              Formatted for <span className="font-bold text-blue-800">4″ × 2″</span> thermal labels.
+              Enable <span className="font-bold text-blue-800">Background Graphics</span> in your browser's print settings.
+              Barcodes use <span className="font-bold text-blue-800">Code 39</span> encoding and are scanner-ready.
             </p>
           </div>
 
-          {/* ── Label grid ── */}
-          <div
-            className="flex-1 overflow-y-auto p-6 md:p-8 bg-stone-200/40 print:bg-white print:p-0"
-            style={{ scrollbarWidth: 'none' }}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2 print:gap-0">
+          {/* ── Global copies toolbar ── */}
+          <div className="shrink-0 px-6 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Set all copies:
+              </span>
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 5, 10].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setAllCopies(n)}
+                    className={`w-8 h-8 rounded-lg text-xs font-black border transition-all active:scale-90 ${
+                      globalVal === n
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[10px] font-mono text-slate-400">Total:</span>
+              <span className="text-sm font-black text-blue-600 tabular-nums">{totalLabels}</span>
+              <span className="text-[10px] font-mono text-slate-400">{totalLabels === 1 ? 'label' : 'labels'}</span>
+            </div>
+          </div>
+
+          {/* ── Label list with per-item stepper ── */}
+          <div className="flex-1 overflow-y-auto p-6 bg-slate-100/50" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex flex-col gap-3">
               {items.map(item => (
-                <LabelCard
-                  key={item.id}
-                  item={item}
-                  warehouseName={getWarehouseName(item.warehouseId)}
-                />
+                <div key={item.id} className="flex gap-3 items-stretch">
+
+                  {/* Stepper panel */}
+                  <div className="shrink-0 w-32 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">
+                      Copies
+                    </p>
+                    {/* <CopyStepper
+                      value={copies[item.id] ?? 1}
+                      onChange={v => setCopy(item.id, v)}
+                    /> */}
+                    {/* Direct input */}
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={copies[item.id] ?? 1}
+                      onChange={e => setCopy(item.id, parseInt(e.target.value) || 1)}
+                      className="w-14 text-center text-sm font-mono text-slate-500 bg-slate-50 border border-slate-200 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-500 transition-all"
+                    />
+                  </div>
+
+                  {/* Label preview */}
+                  <div className="flex-1">
+                    <LabelCard item={item} warehouseName={getWarehouseName(item.warehouseId)} />
+                    {(copies[item.id] ?? 1) > 1 && (
+                      <p className="mt-1.5 px-1 text-[9px] font-mono text-slate-400">
+                        Will print <span className="font-bold text-blue-600">{copies[item.id]}</span> copies of this label
+                      </p>
+                    )}
+                  </div>
+
+                </div>
               ))}
             </div>
           </div>
 
           {/* ── Footer ── */}
-          <div className="shrink-0 border-t border-stone-200 px-6 py-4 flex items-center justify-between gap-4">
-            <p className="text-[10px] text-stone-400 font-mono">
-              {items.length} label{items.length !== 1 ? 's' : ''} · Code 39 · {new Date().toLocaleDateString('en-PH')}
+          {/* <div className="shrink-0 border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
+            <p className="text-[10px] text-slate-400 font-mono">
+              {totalLabels} label{totalLabels !== 1 ? 's' : ''} · Code 39 · {new Date().toLocaleDateString('en-PH')}
             </p>
             <button
               onClick={handleClose}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold text-stone-600 bg-white border border-stone-200 shadow-sm hover:bg-stone-100 hover:text-stone-900 transition-all active:scale-95"
+              className="px-6 py-2.5 rounded-full text-sm font-semibold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
             >
               Close
             </button>
-          </div>
+          </div> */}
 
         </div>
       </div>
 
-      {/* Print-only label sheet — always in DOM, hidden on screen */}
-      <div className="print-root hidden print:block">
-        <div className="grid grid-cols-2">
-          {items.map(item => (
+      {/* Print-only label sheet — expanded by copy counts */}
+      <div className="print-root">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+          {printItems.map((item) => (
             <LabelCard
-              key={item.id}
+              key={(item as any)._printKey}
               item={item}
               warehouseName={getWarehouseName(item.warehouseId)}
             />

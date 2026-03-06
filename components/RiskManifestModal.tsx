@@ -58,7 +58,7 @@ const RiskManifestModal: React.FC<RiskManifestModalProps> = ({ items, transactio
     link.setAttribute("download", `Nexus_Risk_Manifest_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    // document.body.removeChild(link);
   };
 
   return (

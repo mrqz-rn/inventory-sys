@@ -46,16 +46,7 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
 
   const st = statusConfig[item.status];
 
-  /**
-   * COST COMPUTATIONS
-   * ─────────────────────────────────────────────────────────────────────────
-   * trueUnitCost  = per-unit landed cost = sum of all per-unit cost components
-   *                 (baseCost + freight + duties + taxes)
-   *
-   * totalInventoryValue = trueUnitCost × quantity
-   *                       = total capitalized value of all units on hand
-   */
-  const trueUnitCost       = item.baseCost + item.freight + item.duties + item.taxes;
+  const trueUnitCost        = item.baseCost + item.freight + item.duties + item.taxes;
   const totalInventoryValue = trueUnitCost * item.quantity;
 
   const costBreakdown = [
@@ -69,33 +60,33 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
     <div
       onClick={handleClose}
       className={`
-        fixed inset-0 z-[110] flex items-end md:items-center md:justify-center
+        fixed inset-0 z-[110] flex items-center justify-center p-4
         transition-all duration-300
         ${visible
-          ? 'bg-stone-900/40 backdrop-blur-sm'
+          ? 'bg-slate-900/40 backdrop-blur-sm'
           : 'bg-transparent backdrop-blur-none pointer-events-none'}
       `}
     >
       <div
         onClick={e => e.stopPropagation()}
         className={`
-          relative w-full md:max-w-3xl
-          bg-stone-50 border border-stone-200 shadow-2xl
-          rounded-t-[2rem] md:rounded-[2rem]
-          max-h-[92dvh] overflow-y-auto
+          relative w-full max-w-3xl
+          bg-white border border-slate-200 shadow-2xl
+          rounded-3xl
+          max-h-[90dvh] overflow-y-auto
           transition-all duration-300 ease-out
           ${visible
-            ? 'translate-y-0 opacity-100 md:scale-100'
-            : 'translate-y-full opacity-0 md:translate-y-4 md:scale-[0.97]'}
+            ? 'translate-y-0 opacity-100 scale-100'
+            : 'translate-y-4 opacity-0 scale-[0.97]'}
         `}
         style={{ scrollbarWidth: 'none' }}
       >
 
         {/* ── Sticky Header ── */}
-        <div className="sticky top-0 z-10 bg-stone-50/90 backdrop-blur-md border-b border-stone-200 px-6 py-4 flex items-center justify-between gap-4">
+        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1.5 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-[11px] text-stone-400 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-md tracking-wide">
+              <span className="font-mono text-[11px] text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md tracking-wide">
                 {item.barcode}
               </span>
               <span className={`inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full ${st.pill}`}>
@@ -103,14 +94,14 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
                 {st.label}
               </span>
             </div>
-            <h2 className="text-lg font-black text-stone-900 leading-snug tracking-tight truncate">
+            <h2 className="text-lg font-black text-slate-900 leading-snug tracking-tight truncate">
               {item.name}
             </h2>
           </div>
 
           <button
             onClick={handleClose}
-            className="shrink-0 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors"
+            className="shrink-0 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
           >
             <X size={15} />
           </button>
@@ -126,7 +117,6 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
             </span>
 
             <div className="relative z-10 flex flex-col gap-6">
-              {/* Top row: per-unit + stock badge */}
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 mb-1">
@@ -149,10 +139,8 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="h-px bg-white/20" />
 
-              {/* Bottom row: total inventory value */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60 mb-1">
@@ -171,11 +159,11 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
 
           {/* ── Cost Breakdown ── */}
           <div>
-            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-stone-400 mb-4">
+            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-slate-400 mb-4">
               <TrendingUp size={10} />
               Cost Breakdown
-              <span className="text-[8px] font-medium normal-case tracking-normal text-stone-300">(per unit)</span>
-              <span className="flex-1 h-px bg-stone-200" />
+              <span className="text-[8px] font-medium normal-case tracking-normal text-slate-300">(per unit)</span>
+              <span className="flex-1 h-px bg-slate-200" />
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {costBreakdown.map(({ label, value, icon: Icon, bar }) => {
@@ -183,17 +171,17 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
                 return (
                   <div
                     key={label}
-                    className="bg-white border border-stone-200 rounded-2xl p-4 hover:border-stone-300 hover:shadow-sm transition-all"
+                    className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Icon size={11} className="text-stone-400 shrink-0" />
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-stone-400">{label}</span>
+                      <Icon size={11} className="text-slate-400 shrink-0" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
                     </div>
-                    <p className="font-mono text-base font-semibold text-stone-800">₱{value.toFixed(2)}</p>
-                    <div className="mt-2.5 h-1 bg-stone-100 rounded-full overflow-hidden">
+                    <p className="font-mono text-base font-semibold text-slate-800">₱{value.toFixed(2)}</p>
+                    <div className="mt-2.5 h-1 bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${bar} transition-all duration-700`} style={{ width: `${pct}%` }} />
                     </div>
-                    <p className="text-[9px] text-stone-300 mt-1 font-mono">{pct}% of unit cost</p>
+                    <p className="text-[9px] text-slate-300 mt-1 font-mono">{pct}% of unit cost</p>
                   </div>
                 );
               })}
@@ -202,34 +190,34 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
 
           {/* ── Item Info Grid ── */}
           <div>
-            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-stone-400 mb-4">
+            <p className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.22em] text-slate-400 mb-4">
               <Zap size={10} />
               Item Info
-              <span className="flex-1 h-px bg-stone-200" />
+              <span className="flex-1 h-px bg-slate-200" />
             </p>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 hover:border-stone-300 hover:shadow-sm transition-all">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <MapPin size={10} className="text-stone-300" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-300">Location</span>
+                  <MapPin size={10} className="text-slate-300" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-300">Location</span>
                 </div>
-                <p className="text-sm font-bold text-stone-800 leading-snug">{warehouse?.name || 'Unknown Hub'}</p>
+                <p className="text-sm font-bold text-slate-800 leading-snug">{warehouse?.name || 'Unknown Hub'}</p>
               </div>
 
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 hover:border-stone-300 hover:shadow-sm transition-all">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 hover:shadow-sm transition-all">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Layers size={10} className="text-stone-300" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-300">Category</span>
+                  <Layers size={10} className="text-slate-300" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-300">Category</span>
                 </div>
-                <p className="text-sm font-bold text-stone-800 leading-snug">{getFullCategoryPath(item.categoryId)}</p>
+                <p className="text-sm font-bold text-slate-800 leading-snug">{getFullCategoryPath(item.categoryId)}</p>
               </div>
 
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 hover:border-stone-300 hover:shadow-sm transition-all col-span-2 md:col-span-1">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-slate-300 hover:shadow-sm transition-all col-span-2 md:col-span-1">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Calendar size={10} className="text-stone-300" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-stone-300">Last Entry</span>
+                  <Calendar size={10} className="text-slate-300" />
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-300">Last Entry</span>
                 </div>
-                <p className="text-sm font-bold text-stone-800 leading-snug">
+                <p className="text-sm font-bold text-slate-800 leading-snug">
                   {new Date(item.lastUpdated).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric', year: 'numeric'
                   })}
@@ -239,7 +227,7 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
           </div>
 
           {/* ── Audit Note ── */}
-          <div className="flex gap-3.5 items-start bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          {/* <div className="flex gap-3.5 items-start bg-blue-50 border border-blue-200 rounded-2xl p-5">
             <div className="shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
               <Info size={13} />
             </div>
@@ -253,19 +241,19 @@ const ItemDetailsModal: React.FC<ItemDetailsModalProps> = ({
                 computed across <span className="font-bold text-blue-700">{item.quantity} {item.quantity === 1 ? 'unit' : 'units'}</span> on hand.
               </p>
             </div>
-          </div>
+          </div> */}
 
         </div>
 
         {/* ── Footer ── */}
-        <div className="sticky bottom-0 bg-stone-50/90 backdrop-blur-md border-t border-stone-200 px-6 py-4 flex justify-end">
+        {/* <div className="sticky bottom-0 bg-white/90 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex justify-end">
           <button
             onClick={handleClose}
-            className="px-6 py-2.5 rounded-full text-sm font-semibold text-stone-600 bg-white border border-stone-200 shadow-sm hover:bg-stone-100 hover:text-stone-900 transition-all active:scale-95"
+            className="px-6 py-2.5 rounded-full text-sm font-semibold text-slate-600 bg-white border border-slate-200 shadow-sm hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
           >
             Close Details
           </button>
-        </div>
+        </div> */}
 
       </div>
     </div>

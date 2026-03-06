@@ -30,41 +30,34 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
   const [itemToTransfer, setItemToTransfer] = useState<Item | null>(null);
   const [isBulkTransferOpen, setIsBulkTransferOpen] = useState(false);
   const [itemsToPrint, setItemsToPrint] = useState<Item[] | null>(null);
-  
-  // Selection State
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  
-  // Pagination State
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isShowingAll, setIsShowingAll] = useState(false);
 
-  // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory]);
 
-  const canAction = (action: 'update' | 'delete' | 'export') => 
+  const canAction = (action: 'update' | 'delete' | 'export') =>
     permissions.some(p => p.moduleId === 'inventory' && p.actions.includes(action));
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           item.barcode.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // Calculate Pagination
   const effectiveItemsPerPage = isShowingAll ? filteredItems.length : itemsPerPage;
   const indexOfLastItem = currentPage * effectiveItemsPerPage;
   const indexOfFirstItem = indexOfLastItem - effectiveItemsPerPage;
   const currentItems = isShowingAll ? filteredItems : filteredItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = isShowingAll ? 1 : Math.ceil(filteredItems.length / itemsPerPage);
 
-  const [adjustmentState, setAdjustmentState] = useState<{
-    item: Item | null,
-    type: 'IN' | 'OUT' | null
-  }>({ item: null, type: null });
+  const [adjustmentState, setAdjustmentState] = useState<{ item: Item | null; type: 'IN' | 'OUT' | null }>({ item: null, type: null });
 
   const getCategoryName = (id: string) => {
     const cat = categories.find(c => c.id === id);
@@ -76,18 +69,18 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
   const getWarehouseName = (id: string) => warehouses.find(w => w.id === id)?.name || 'N/A';
 
   const statusColors = {
-    [ItemStatus.RAW]: 'bg-slate-100 text-slate-700',
-    [ItemStatus.FINISHED]: 'bg-indigo-100 text-indigo-700',
+    [ItemStatus.RAW]:         'bg-slate-100 text-slate-600',
+    [ItemStatus.FINISHED]:    'bg-blue-100 text-blue-700',
     [ItemStatus.GOOD_AS_NEW]: 'bg-emerald-100 text-emerald-700',
-    [ItemStatus.OLD_USED]: 'bg-amber-100 text-amber-700 ring-1 ring-amber-500/20',
+    [ItemStatus.OLD_USED]:    'bg-amber-100 text-amber-700',
   };
 
   const deleteItem = (id: string) => {
     if (confirm('Permanently delete SKU?')) {
       setItems(prev => prev.filter(i => i.id !== id));
-      const nextSelected = new Set(selectedIds);
-      nextSelected.delete(id);
-      setSelectedIds(nextSelected);
+      const next = new Set(selectedIds);
+      next.delete(id);
+      setSelectedIds(next);
     }
   };
 
@@ -107,13 +100,9 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
   };
 
   const toggleSelectRow = (id: string) => {
-    const nextSelected = new Set(selectedIds);
-    if (nextSelected.has(id)) {
-      nextSelected.delete(id);
-    } else {
-      nextSelected.add(id);
-    }
-    setSelectedIds(nextSelected);
+    const next = new Set(selectedIds);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelectedIds(next);
   };
 
   const handleUpdateItem = (updatedItem: Item) => {
@@ -123,11 +112,9 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
 
   const handleAdjustStock = (qty: number) => {
     if (!adjustmentState.item || !adjustmentState.type) return;
-    if (adjustmentState.type === 'OUT') {
-      onStockOut(adjustmentState.item, qty);
-    } else {
-      onStockIn(adjustmentState.item, qty);
-    }
+    adjustmentState.type === 'OUT'
+      ? onStockOut(adjustmentState.item, qty)
+      : onStockIn(adjustmentState.item, qty);
     setAdjustmentState({ item: null, type: null });
   };
 
@@ -139,18 +126,12 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
   };
 
   const handleBulkRelocate = (targetWhId: string) => {
-    const itemsToMove = items.filter(i => selectedIds.has(i.id));
-    itemsToMove.forEach(item => {
-      onTransfer(item, targetWhId, item.quantity);
-    });
+    items.filter(i => selectedIds.has(i.id)).forEach(item => onTransfer(item, targetWhId, item.quantity));
     setIsBulkTransferOpen(false);
     setSelectedIds(new Set());
   };
 
-  const handleBulkPrint = () => {
-    const selectedItems = items.filter(i => selectedIds.has(i.id));
-    setItemsToPrint(selectedItems);
-  };
+  const handleBulkPrint = () => setItemsToPrint(items.filter(i => selectedIds.has(i.id)));
 
   const handleShowAll = () => {
     setIsShowingAll(!isShowingAll);
@@ -159,53 +140,58 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
 
   return (
     <div className="relative">
+      {/* ── Page header ── */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl md:text-2xl font-black text-slate-900">Inventory</h2>
-          <p className="text-xs md:text-sm text-slate-500">Live tracking and stock management</p>
+          <p className="text-xs md:text-sm text-slate-500">Tracking and stock management</p>
         </div>
         <div className="flex gap-2">
           {canAction('export') && (
-            <button className="hidden md:flex bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 items-center gap-2">
+            <button className="hidden md:flex bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:bg-slate-50 items-center gap-2 transition-colors">
               <FileDown className="w-4 h-4" /> Export CSV
             </button>
           )}
           {canAction('update') && (
-            <button 
+            <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-indigo-600 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 text-white p-2.5 md:px-5 md:py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 active:scale-95 transition-all flex items-center gap-2"
             >
-              <Plus className="w-5 h-5 md:w-4 md:h-4" /> 
+              <Plus className="w-5 h-5 md:w-4 md:h-4" />
               <span className="hidden md:inline">Add New SKU</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Search + Category Filter */}
+      {/* ── Search + Category Filter ── */}
       <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-3 my-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search by name or barcode..." 
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none text-slate-900 font-bold"
+          <input
+            type="text"
+            placeholder="Search by name or barcode..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-400/30 focus:border-blue-500 outline-none text-slate-900 font-bold transition-all"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <button 
+          <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${selectedCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-500'}`}
+            className={`px-3 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${
+              selectedCategory === 'all' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+            }`}
           >
             All
           </button>
           {categories.filter(c => !c.parentId).map(cat => (
-            <button 
+            <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${selectedCategory === cat.id ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-500'}`}
+              className={`px-3 py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${
+                selectedCategory === cat.id ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+              }`}
             >
               {cat.name}
             </button>
@@ -215,53 +201,44 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
 
       {/* ── Desktop Table ── */}
       <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 my-4 overflow-hidden">
-
-        {/*
-          SCROLLABLE TABLE BODY
-          ─────────────────────────────────────────────────────────────────────
-          Strategy: wrap the entire <table> in an overflow-x-auto + overflow-y-auto
-          div with a fixed max-height. The <thead> uses `sticky top-0 z-10` so it
-          stays visible as the tbody scrolls. The pagination bar lives OUTSIDE this
-          scroll container so it always anchors to the bottom of the card.
-        */}
-        <div
-          className="overflow-x-auto overflow-y-auto"
-          style={{ maxHeight: '62vh' }}
-        >
+        <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '62vh' }}>
           <table className="w-full text-left">
             <thead className="sticky top-0 z-10">
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="px-6 py-4 w-10">
-                  <div 
+                  <div
                     onClick={toggleSelectAll}
                     className={`w-5 h-5 rounded border-2 cursor-pointer flex items-center justify-center transition-all ${
-                      selectedIds.size > 0 && selectedIds.size === currentItems.length 
-                        ? 'bg-indigo-600 border-indigo-600' 
-                        : 'border-slate-300 bg-white hover:border-indigo-400'
+                      selectedIds.size > 0 && selectedIds.size === currentItems.length
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-slate-300 bg-white hover:border-blue-400'
                     }`}
                   >
                     {selectedIds.size > 0 && selectedIds.size === currentItems.length && <Check className="w-3 h-3 text-white" />}
-                    {selectedIds.size > 0 && selectedIds.size < currentItems.length && <div className="w-2.5 h-0.5 bg-indigo-600 rounded-full" />}
+                    {selectedIds.size > 0 && selectedIds.size < currentItems.length && <div className="w-2.5 h-0.5 bg-blue-600 rounded-full" />}
                   </div>
                 </th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Item</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Category</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Location</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Stock</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Location</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Stock</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {currentItems.map(item => (
-                <tr key={item.id} className={`hover:bg-slate-50/50 transition-colors group ${selectedIds.has(item.id) ? 'bg-indigo-50/30' : ''}`}>
+                <tr
+                  key={item.id}
+                  className={`hover:bg-slate-50/60 transition-colors group ${selectedIds.has(item.id) ? 'bg-blue-50/40' : ''}`}
+                >
                   <td className="px-6 py-4">
-                    <div 
+                    <div
                       onClick={() => toggleSelectRow(item.id)}
                       className={`w-5 h-5 rounded border-2 cursor-pointer flex items-center justify-center transition-all ${
-                        selectedIds.has(item.id) 
-                          ? 'bg-indigo-600 border-indigo-600' 
-                          : 'border-slate-300 bg-white hover:border-indigo-400'
+                        selectedIds.has(item.id)
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-slate-300 bg-white hover:border-blue-400'
                       }`}
                     >
                       {selectedIds.has(item.id) && <Check className="w-3 h-3 text-white" />}
@@ -273,7 +250,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                       <span className="text-[10px] font-mono text-slate-400">{item.barcode}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-nowrap">
                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${statusColors[item.status]}`}>
                       {item.status.replace('_', ' ')}
                     </span>
@@ -287,62 +264,53 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
-                      <button 
+                    <div className="flex items-center justify-end gap-1 transition-opacity">
+                      <button
                         onClick={() => setSelectedItemForView(item)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       {canAction('update') && (
                         <>
-                          <button 
+                          <button
                             onClick={() => setItemToEdit(item)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit SKU"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setItemsToPrint([item])}
-                            className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Print Label"
                           >
                             <Printer className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setItemToTransfer(item)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Transfer Hub"
                           >
                             <ArrowRightLeft className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setAdjustmentState({ item, type: 'IN' })}
                             className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                             title="Stock In"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setAdjustmentState({ item, type: 'OUT' })}
-                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                             title="Stock Out"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                         </>
                       )}
-                      {/* {canAction('delete') && (
-                        <button 
-                          onClick={() => deleteItem(item.id)}
-                          className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Delete SKU"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )} */}
                     </div>
                   </td>
                 </tr>
@@ -350,24 +318,23 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination UI */}
-        <div className="px-6 py-4 border-t border-slate-50 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/30">
+
+        {/* ── Pagination ── */}
+        <div className="px-6 py-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/40">
           <div className="flex items-center gap-6">
             <p className="text-xs font-bold text-slate-500">
-              Showing <span className="text-slate-900">{isShowingAll ? 1 : indexOfFirstItem + 1}</span> to <span className="text-slate-900">{isShowingAll ? filteredItems.length : Math.min(indexOfLastItem, filteredItems.length)}</span> of <span className="text-slate-900">{filteredItems.length}</span> SKUs
+              Showing <span className="text-slate-900">{isShowingAll ? 1 : indexOfFirstItem + 1}</span> to{' '}
+              <span className="text-slate-900">{isShowingAll ? filteredItems.length : Math.min(indexOfLastItem, filteredItems.length)}</span> of{' '}
+              <span className="text-slate-900">{filteredItems.length}</span> SKUs
             </p>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows per page:</span>
-                <select 
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows:</span>
+                <select
                   disabled={isShowingAll}
                   className="bg-transparent text-xs font-bold text-slate-900 outline-none cursor-pointer disabled:opacity-30"
                   value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
+                  onChange={e => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -375,11 +342,11 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                   <option value={50}>50</option>
                 </select>
               </div>
-              <button 
+              <button
                 onClick={handleShowAll}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                  isShowingAll 
-                    ? 'bg-indigo-600 text-white shadow-md' 
+                  isShowingAll
+                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
                     : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
@@ -388,13 +355,13 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
               </button>
             </div>
           </div>
-          
+
           {!isShowingAll && (
             <div className="flex items-center gap-1">
-              <button 
+              <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white hover:text-indigo-600 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white hover:text-blue-600 disabled:opacity-30 transition-all"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -419,10 +386,10 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                   ) : (
                     <button
                       key={page}
-                      onClick={() => setCurrentPage(page)}
+                      onClick={() => setCurrentPage(page as number)}
                       className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${
                         currentPage === page
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-200'
                           : 'text-slate-500 hover:bg-white border border-transparent hover:border-slate-200'
                       }`}
                     >
@@ -431,10 +398,10 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                   )
                 );
               })()}
-              <button 
+              <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white hover:text-indigo-600 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white hover:text-blue-600 disabled:opacity-30 transition-all"
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </button>
@@ -443,17 +410,21 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
         </div>
       </div>
 
+      {/* ── Mobile Cards ── */}
       <div className="md:hidden space-y-3">
         {currentItems.map(item => (
-          <div key={item.id} className={`bg-white p-4 rounded-2xl border transition-all ${selectedIds.has(item.id) ? 'border-indigo-500 ring-2 ring-indigo-500/10' : 'border-slate-100'}`}>
+          <div
+            key={item.id}
+            className={`bg-white p-4 rounded-2xl border transition-all ${
+              selectedIds.has(item.id) ? 'border-blue-400 ring-2 ring-blue-400/10' : 'border-slate-100'
+            }`}
+          >
             <div className="flex justify-between items-start mb-3">
               <div className="flex gap-3 items-start">
-                <div 
+                <div
                   onClick={() => toggleSelectRow(item.id)}
                   className={`w-5 h-5 mt-1 rounded border-2 cursor-pointer flex items-center justify-center transition-all ${
-                    selectedIds.has(item.id) 
-                      ? 'bg-indigo-600 border-indigo-600' 
-                      : 'border-slate-300 bg-white'
+                    selectedIds.has(item.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 bg-white'
                   }`}
                 >
                   {selectedIds.has(item.id) && <Check className="w-3 h-3 text-white" />}
@@ -475,104 +446,83 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                 <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Units</p>
               </div>
             </div>
-            
+
             <div className="flex items-center justify-between pt-3 border-t border-slate-50">
               <div className="flex items-center gap-1.5 overflow-hidden">
                 <Layers className="w-3 h-3 text-slate-400 shrink-0" />
                 <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter truncate">{getCategoryName(item.categoryId)}</span>
               </div>
               <div className="flex gap-2">
-                <button 
-                  onClick={() => setSelectedItemForView(item)}
-                  className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100"
-                >
+                <button onClick={() => setSelectedItemForView(item)} className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100">
                   <Eye className="w-4 h-4" />
                 </button>
                 {canAction('update') && (
                   <>
-                    <button 
-                      onClick={() => setItemToEdit(item)}
-                      className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100"
-                    >
+                    <button onClick={() => setItemToEdit(item)} className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100">
                       <Edit3 className="w-4 h-4" />
                     </button>
-                    <button 
-                      onClick={() => setItemsToPrint([item])}
-                      className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100"
-                    >
+                    <button onClick={() => setItemsToPrint([item])} className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100">
                       <Printer className="w-4 h-4" />
                     </button>
-                    <button 
-                      onClick={() => setItemToTransfer(item)}
-                      className="bg-slate-50 text-slate-400 p-2 rounded-xl active:bg-slate-100"
-                    >
+                    <button onClick={() => setItemToTransfer(item)} className="bg-blue-50 text-blue-500 p-2 rounded-xl active:bg-blue-100">
                       <ArrowRightLeft className="w-4 h-4" />
                     </button>
-                    <button 
-                      onClick={() => setAdjustmentState({ item, type: 'IN' })}
-                      className="bg-emerald-50 text-emerald-600 p-2 rounded-xl active:bg-emerald-100"
-                    >
+                    <button onClick={() => setAdjustmentState({ item, type: 'IN' })} className="bg-emerald-50 text-emerald-600 p-2 rounded-xl active:bg-emerald-100">
                       <Plus className="w-4 h-4" />
                     </button>
-                    <button 
-                      onClick={() => setAdjustmentState({ item, type: 'OUT' })}
-                      className="bg-rose-50 text-rose-500 p-2 rounded-xl active:bg-rose-100"
-                    >
+                    <button onClick={() => setAdjustmentState({ item, type: 'OUT' })} className="bg-rose-50 text-rose-500 p-2 rounded-xl active:bg-rose-100">
                       <Minus className="w-4 h-4" />
                     </button>
                   </>
                 )}
-                {canAction('delete') && (
-                   <button 
-                    onClick={() => deleteItem(item.id)}
-                    className="bg-rose-50 text-rose-500 p-2 rounded-xl active:bg-rose-100"
-                  >
+                {/* {canAction('delete') && (
+                  <button onClick={() => deleteItem(item.id)} className="bg-rose-50 text-rose-500 p-2 rounded-xl active:bg-rose-100">
                     <Trash2 className="w-4 h-4" />
                   </button>
-                )}
+                )} */}
               </div>
             </div>
           </div>
         ))}
         {filteredItems.length > 5 && (
-           <button 
+          <button
             onClick={handleShowAll}
-            className="w-full py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50"
-           >
-             {isShowingAll ? 'Show Less' : `Show All ${filteredItems.length} Items`}
-           </button>
+            className="w-full py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50 transition-colors"
+          >
+            {isShowingAll ? 'Show Less' : `Show All ${filteredItems.length} Items`}
+          </button>
         )}
       </div>
 
-      {/* Bulk Action Bar */}
+      {/* ── Bulk Action Bar ── */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-20 md:bottom-10 left-1/2 -translate-x-1/2 z-[80] animate-in slide-in-from-bottom-10 duration-500">
           <div className="bg-slate-900 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-6 border border-white/10 backdrop-blur-md">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Selected Assets</span>
+              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Selected Assets</span>
               <span className="text-sm font-black">{selectedIds.size} SKUs</span>
             </div>
             <div className="h-8 w-px bg-white/10" />
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={handleBulkPrint}
                 className="flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-xs font-bold transition-all"
               >
                 <Printer className="w-4 h-4" /> Print Labels
               </button>
-              <button 
+              <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl text-xs font-bold transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl text-xs font-bold transition-all"
               >
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
-              <button 
+              <button
                 onClick={() => setIsBulkTransferOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-500 rounded-xl text-xs font-bold transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-500 rounded-xl text-xs font-bold transition-all"
               >
                 <ArrowRightLeft className="w-4 h-4" /> Relocate
               </button>
-              <button 
+              <button
                 onClick={() => setSelectedIds(new Set())}
                 className="px-4 py-2 text-slate-400 hover:text-white text-xs font-bold transition-all"
               >
@@ -584,12 +534,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
       )}
 
       {isAddModalOpen && (
-        <AddItemModal 
-          onClose={() => setIsAddModalOpen(false)}
-          setItems={setItems}
-          warehouses={warehouses}
-          categories={categories}
-        />
+        <AddItemModal onClose={() => setIsAddModalOpen(false)} setItems={setItems} warehouses={warehouses} categories={categories} />
       )}
 
       {selectedItemForView && (
@@ -603,22 +548,11 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
       )}
 
       {itemToEdit && (
-        <EditItemModal
-          item={itemToEdit}
-          onClose={() => setItemToEdit(null)}
-          onSave={handleUpdateItem}
-          warehouses={warehouses}
-          categories={categories}
-        />
+        <EditItemModal item={itemToEdit} onClose={() => setItemToEdit(null)} onSave={handleUpdateItem} warehouses={warehouses} categories={categories} />
       )}
 
       {itemToTransfer && (
-        <TransferItemModal
-          item={itemToTransfer}
-          warehouses={warehouses}
-          onClose={() => setItemToTransfer(null)}
-          onConfirm={handleConfirmTransfer}
-        />
+        <TransferItemModal item={itemToTransfer} warehouses={warehouses} onClose={() => setItemToTransfer(null)} onConfirm={handleConfirmTransfer} />
       )}
 
       {isBulkTransferOpen && (
@@ -631,11 +565,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
       )}
 
       {itemsToPrint && (
-        <BarcodeLabelModal 
-          items={itemsToPrint}
-          warehouses={warehouses}
-          onClose={() => setItemsToPrint(null)}
-        />
+        <BarcodeLabelModal items={itemsToPrint} warehouses={warehouses} onClose={() => setItemsToPrint(null)} />
       )}
 
       {adjustmentState.item && (
