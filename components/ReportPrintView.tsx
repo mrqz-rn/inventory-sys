@@ -37,7 +37,7 @@ const ReportPrintView: React.FC<ReportPrintViewProps> = ({ items, warehouses, tr
               <div className="bg-black p-2 rounded-lg text-white">
                 <Box className="w-8 h-8" />
               </div>
-              <h1 className="text-3xl font-black tracking-tighter text-black uppercase">Nexus Warehouse Pro</h1>
+              <h1 className="text-3xl font-black tracking-tighter text-black uppercase">Nexus IMS</h1>
             </div>
             <h2 className="text-xl font-bold text-black uppercase tracking-widest">Inventory Performance Report</h2>
           </div>

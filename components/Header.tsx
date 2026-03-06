@@ -62,7 +62,7 @@ const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Logo mark — visible on desktop too for branding */}
-          <div className="hidden md:flex items-center gap-2.5 mr-4">
+          <div className="hidden md:flex items-center gap-2.5 mr-4 lg:hidden">
             <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-sm">
               <Box className="w-4 h-4 text-white" />
             </div>
@@ -70,14 +70,14 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Search */}
-          <div className="relative hidden sm:block">
+          {/* <div className="relative hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search anything…"
               className="w-44 md:w-60 pl-8.5 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400 outline-none transition-all"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Right: scan + notifs + profile */}
@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
           {/* Scan button — desktop */}
           <button
             onClick={onScan}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm active:scale-95"
+            className="hidden md:flex lg:hidden items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm active:scale-95"
           >
             <ScanLine className="w-3.5 h-3.5" />
             Scan

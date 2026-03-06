@@ -16,13 +16,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, onScan
     { id: 'dashboard',  label: 'Dashboard',   icon: LayoutDashboard },
     { id: 'inventory',  label: 'Inventory',    icon: Package },
     { id: 'bulk-upload',label: 'Batch Intake', icon: FileUp },
-    { id: 'warehouses', label: 'Warehouses',   icon: Warehouse },
     { id: 'approvals',  label: 'Gatekeeper',   icon: ClipboardCheck },
     { id: 'valuation',  label: 'Valuation',    icon: Calculator },
     { id: 'reports',    label: 'Analytics',    icon: BarChart3 },
   ];
 
   const adminItems = [
+    { id: 'warehouses', label: 'Warehouses',   icon: Warehouse },
     { id: 'category-mgmt',  label: 'Categories',    icon: Tags },
     { id: 'access-control', label: 'Access Control', icon: ShieldAlert },
   ];
