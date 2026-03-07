@@ -45,11 +45,18 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
     permissions.some(p => p.moduleId === 'inventory' && p.actions.includes(action));
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          item.barcode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            item.barcode.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // OLD: const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
+      
+      // NEW: also match if item's category is a child of the selected parent
+      const matchesCategory = selectedCategory === 'all' || 
+        item.categoryId === selectedCategory ||
+        categories.some(c => c.id === item.categoryId && c.parentId === selectedCategory);
+      
+      return matchesSearch && matchesCategory;
+    });
 
   const effectiveItemsPerPage = isShowingAll ? filteredItems.length : itemsPerPage;
   const indexOfLastItem = currentPage * effectiveItemsPerPage;
