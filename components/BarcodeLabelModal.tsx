@@ -73,7 +73,7 @@ const LabelCard: React.FC<{ item: Item; warehouseName: string }> = ({ item, ware
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">
-            Nexus Pro Registry
+            Nexus IMS Registry
           </p>
           <p className="text-sm font-black text-slate-900 leading-tight truncate">{item.name}</p>
           <p className="text-[9px] text-slate-400 mt-0.5">

@@ -381,7 +381,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
                     type="submit"
                     className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-black text-blue-700 bg-white hover:bg-blue-50 shadow-lg transition-all active:scale-95"
                   >
-                    <Save size={14} /> Commit Changes
+                    <Save size={14} /> Save Changes
                   </button>
                 </div>
               </div>

@@ -43,7 +43,7 @@ const BulkUpload: React.FC<BulkUploadProps> = ({ warehouses, categories, setItem
     const validItems = manifest.filter(item => item.name.trim() !== '' && item.quantity > 0);
     
     if (validItems.length === 0) {
-      alert("Please enter at least one valid item name.");
+      alert("Please enter at least xone valid item name.");
       return;
     }
 
@@ -250,7 +250,7 @@ const BulkUpload: React.FC<BulkUploadProps> = ({ warehouses, categories, setItem
                   <div className="w-5 h-5 border-2 border-blue-300 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Save className="w-5 h-5 text-blue-200" /> Commit Manifest to Registry
+                    <Save className="w-5 h-5 text-blue-200" /> Save Manifest to Registry
                   </>
                 )}
               </button>

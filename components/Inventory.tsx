@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Item, Category, Warehouse, ItemStatus, UserRole, Permission } from '../types';
-import { Search, Filter, Plus, Minus, Info, Tag, Layers, ChevronRight, Box, Trash2, FileDown, Eye, Edit3, ArrowRightLeft, Check, ChevronLeft, ChevronRight as ChevronRightIcon, Printer, Scan, List } from 'lucide-react';
+import { Search, Filter, Plus, Minus, Info, Tag, Layers, ChevronRight, Box, Trash2, FileDown, Eye, Edit3, ArrowRightLeft, Check, ChevronLeft, ChevronRight as ChevronRightIcon, Printer, Scan, List, ShieldCheck } from 'lucide-react';
 import AddItemModal from './AddItemModal';
 import ItemDetailsModal from './ItemDetailsModal';
 import EditItemModal from './EditItemModal';
@@ -21,6 +21,11 @@ interface InventoryProps {
   permissions: Permission[];
 }
 
+interface SuccessAlert {
+  message: string;
+  sub: string;
+}
+
 const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, warehouses, onStockIn, onStockOut, onTransfer, role, permissions }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -37,6 +42,21 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isShowingAll, setIsShowingAll] = useState(false);
 
+  const [successAlert, setSuccessAlert] = useState<SuccessAlert | null>(null);
+  const alertTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showAlert = (message: string, sub: string) => {
+    if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
+    setSuccessAlert({ message, sub });
+    alertTimeoutRef.current = setTimeout(() => setSuccessAlert(null), 3500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (alertTimeoutRef.current) clearTimeout(alertTimeoutRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory]);
@@ -45,18 +65,13 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
     permissions.some(p => p.moduleId === 'inventory' && p.actions.includes(action));
 
   const filteredItems = items.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.barcode.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // OLD: const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
-      
-      // NEW: also match if item's category is a child of the selected parent
-      const matchesCategory = selectedCategory === 'all' || 
-        item.categoryId === selectedCategory ||
-        categories.some(c => c.id === item.categoryId && c.parentId === selectedCategory);
-      
-      return matchesSearch && matchesCategory;
-    });
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          item.barcode.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' ||
+      item.categoryId === selectedCategory ||
+      categories.some(c => c.id === item.categoryId && c.parentId === selectedCategory);
+    return matchesSearch && matchesCategory;
+  });
 
   const effectiveItemsPerPage = isShowingAll ? filteredItems.length : itemsPerPage;
   const indexOfLastItem = currentPage * effectiveItemsPerPage;
@@ -119,21 +134,28 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
 
   const handleAdjustStock = (qty: number) => {
     if (!adjustmentState.item || !adjustmentState.type) return;
-    adjustmentState.type === 'OUT'
-      ? onStockOut(adjustmentState.item, qty)
-      : onStockIn(adjustmentState.item, qty);
+    if (adjustmentState.type === 'OUT') {
+      onStockOut(adjustmentState.item, qty);
+      showAlert('Stock Out Recorded', `${qty} unit(s) removed from "${adjustmentState.item.name}"`);
+    } else {
+      onStockIn(adjustmentState.item, qty);
+      showAlert('Stock In Recorded', `${qty} unit(s) added to "${adjustmentState.item.name}"`);
+    }
     setAdjustmentState({ item: null, type: null });
   };
 
   const handleConfirmTransfer = (targetWhId: string, qty: number) => {
     if (itemToTransfer) {
       onTransfer(itemToTransfer, targetWhId, qty);
+      showAlert('Transfer Successful', `${qty} unit(s) of "${itemToTransfer.name}" → ${getWarehouseName(targetWhId)}`);
       setItemToTransfer(null);
     }
   };
 
   const handleBulkRelocate = (targetWhId: string) => {
-    items.filter(i => selectedIds.has(i.id)).forEach(item => onTransfer(item, targetWhId, item.quantity));
+    const selectedItems = items.filter(i => selectedIds.has(i.id));
+    selectedItems.forEach(item => onTransfer(item, targetWhId, item.quantity));
+    showAlert('Bulk Relocation Done', `${selectedItems.length} SKU(s) moved to ${getWarehouseName(targetWhId)}`);
     setIsBulkTransferOpen(false);
     setSelectedIds(new Set());
   };
@@ -482,11 +504,6 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
                     </button>
                   </>
                 )}
-                {/* {canAction('delete') && (
-                  <button onClick={() => deleteItem(item.id)} className="bg-rose-50 text-rose-500 p-2 rounded-xl active:bg-rose-100">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )} */}
               </div>
             </div>
           </div>
@@ -540,6 +557,7 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
         </div>
       )}
 
+      {/* ── Modals ── */}
       {isAddModalOpen && (
         <AddItemModal onClose={() => setIsAddModalOpen(false)} setItems={setItems} warehouses={warehouses} categories={categories} />
       )}
@@ -583,6 +601,32 @@ const Inventory: React.FC<InventoryProps> = ({ items, setItems, categories, ware
           onConfirm={handleAdjustStock}
         />
       )}
+
+      {/* ── Success Alert Toast ── */}
+      <div
+        className={`fixed top-5 right-5 z-[200] transition-all duration-500 ${
+          successAlert ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+        }`}
+      >
+        <div className="bg-white border border-blue-100 shadow-xl shadow-blue-100/60 rounded-2xl px-5 py-4 flex items-center gap-4 min-w-[320px]">
+          <div className="p-2 bg-blue-500 rounded-xl shadow-md shadow-blue-200">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-slate-800">{successAlert?.message}</p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">{successAlert?.sub}</p>
+          </div>
+          <div className="ml-auto w-1 h-10 rounded-full bg-blue-100 overflow-hidden">
+            <div
+              className="w-full bg-blue-500 rounded-full"
+              style={{
+                height: successAlert ? '0%' : '100%',
+                transition: successAlert ? 'height 3.5s linear' : 'none',
+              }}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
