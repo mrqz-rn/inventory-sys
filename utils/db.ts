@@ -161,7 +161,7 @@ export async function enqueueSyncAction(action: Omit<SyncAction, 'id' | 'status'
 
 export async function getPendingSyncActions(): Promise<SyncAction[]> {
   const all = await dbGetAll<SyncAction>(STORES.syncQueue);
-  return all.filter((a) => a.status === 'PENDING');
+  return all.filter((a) => a.status === 'SYNCED'); // Change to Pending
 }
 
 export async function markSyncActionSynced(id: number): Promise<void> {
