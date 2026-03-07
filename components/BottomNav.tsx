@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Package, ClipboardCheck, ScanLine, User } from 'lucide-react';
+import { LayoutDashboard, Package, ClipboardCheck, ScanLine, User, BarChart3 } from 'lucide-react';
 import { UserRole, Permission } from '../types';
 
 interface BottomNavProps {
@@ -16,7 +16,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, onScan, 
     { id: 'inventory', label: 'Stock', icon: Package },
     { id: 'scan',      label: 'Scan',  icon: ScanLine, special: true },
     { id: 'approvals', label: 'Gate',  icon: ClipboardCheck },
-    { id: 'profile',   label: 'Me',    icon: User },
+    { id: 'reports',    label: 'Analytics',    icon: BarChart3 },
   ];
 
   const canView = (id: string) => permissions.some(p => p.moduleId === id && p.actions.includes('view'));
