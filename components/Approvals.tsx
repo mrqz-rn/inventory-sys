@@ -194,7 +194,7 @@ const Approvals: React.FC<ApprovalsProps> = ({ transactions, items, warehouses, 
         {/* ── History Log ── */}
         <section className="space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-widest">History Log</h3>
-          <div className="bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm shadow-blue-50">
+          <div className="max-h-[60vh] overflow-y-auto bg-white rounded-2xl border border-blue-100 overflow-hidden shadow-sm shadow-blue-50">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>

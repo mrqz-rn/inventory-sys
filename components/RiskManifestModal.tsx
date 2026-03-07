@@ -163,7 +163,7 @@ const RiskManifestModal: React.FC<RiskManifestModalProps> = ({ items, transactio
         </div>
 
         {/* Footer */}
-        <div className="p-8 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
+        {/* <div className="p-8 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
              <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
                 <Zap className="w-4 h-4" />
@@ -175,7 +175,7 @@ const RiskManifestModal: React.FC<RiskManifestModalProps> = ({ items, transactio
           <button onClick={onClose} className="w-full md:w-auto text-xs font-black uppercase text-slate-400 hover:text-slate-600 transition-colors">
             Close Manifest Terminal
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
